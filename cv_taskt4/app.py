@@ -26,6 +26,7 @@ from matplotlib import pyplot as plt
 import matching
 import harris
 import warnings
+import Segmentation
 warnings.filterwarnings("ignore")
 ################################## Page Layouts ###########################################################
 st.set_page_config(
@@ -456,17 +457,20 @@ elif chosen_id == "tab7":
 #############################################################################################################
 elif chosen_id == "tab8":
     selected_Thresholding = sidebar.selectbox('Thresholding', ('Optimal', 'otsu', 'spectral'))
+    selected_Segmentation = sidebar.selectbox('Segmentation', ('Agglomerative', 'Mean shift', 'k-means', 'Region growing,'))
     i_image,f_image, e_image = st.columns(3)
+    
     # Load image
     if my_upload is not None:
         image = Image.open(my_upload)
         img = np.array(image)
-
+        
         # Display input image
         with i_image:
             st.markdown('<p style="text-align: center;">Input Image</p>', unsafe_allow_html=True)
             st.image(image, width=200)
-
+            
+        
         # Apply Thresholding
         with f_image:
             st.markdown(f'<p style="text-align: center;"> Global {selected_Thresholding}</p>', unsafe_allow_html=True)
@@ -478,6 +482,18 @@ elif chosen_id == "tab8":
                 global_img = Thresholding.spectral(img)
             cv2.imwrite('Global.jpg', global_img)
             st.image('Global.jpg', width=200)
+            
+            if selected_Segmentation == "Agglomerative":
+                # Resize the image to 8x8
+                resized_image = cv2.resize(img, (64, 64))
+                segmentation_img = Segmentation.apply_agglomerative_clustering(resized_image,15,30)
+                cv2.imwrite('Segmentation.jpg', segmentation_img)
+            elif selected_Segmentation == "Mean shift":
+                resized_image = cv2.resize(img, (200, 200))
+                segmentation_img = Segmentation.mean_shift(resized_image)
+                cv2.imwrite('Segmentation.jpg', segmentation_img)
+            st.markdown(f'<p style="text-align: center;"> {selected_Segmentation}</p>', unsafe_allow_html=True)
+            st.image ("Segmentation.jpg", width =200)
 
         # Apply Thresholding
         with e_image:

@@ -15,6 +15,7 @@ import Frequency as freq
 import Hough as Hough
 import contour
 import Thresholding as Thresholding
+import luv as luv
 import Kmeans_segmentation as km
 import RegionGrowing as rg
 import cv2
@@ -498,7 +499,7 @@ elif chosen_id == "tab8":
 elif chosen_id == "tab9":
     l_image, r_image = st.columns(2)
     radio_button = sidebar.radio(
-                "", ['K_means_Method','Region_Growing_method','Agglomerative','Mean shift'], horizontal=False)
+                "", ['K_means_Method','Region_Growing_method','Agglomerative','Mean shift','LUV'], horizontal=False)
     flag = True
     if radio_button == 'K_means_Method':
          method = "km"
@@ -509,8 +510,10 @@ elif chosen_id == "tab9":
 
     elif radio_button =='Agglomerative':
          method = "ag"
+    elif radio_button =='Mean shift':
+         method = "ms"
     else:
-         method ="ms"
+         method ="luv"
 
     k_value = sidebar.slider('K Value', 0, step=1, max_value=10, value=4, disabled= flag )    
     if my_upload  is not None:
@@ -552,9 +555,11 @@ elif chosen_id == "tab9":
                     segmented_image_rg = Segmentation.apply_agglomerative_clustering(resized_image,15,30)
                     # cv2.imwrite('Segmentation.jpg', segmentation_img)
                         
-                else:
+                elif method == "ms":
                     resized_image = cv2.resize(image_1, (200, 200))
                     segmented_image_rg = Segmentation.mean_shift(resized_image)
+                elif method == "luv":
+                    segmented_image_rg = luv.BGR_To_LUV(image_1) 
 
                 st.image(segmented_image_rg,width=450)
    

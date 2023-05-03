@@ -28,6 +28,7 @@ from matplotlib import pyplot as plt
 import matching
 import harris
 import warnings
+import Segmentation
 warnings.filterwarnings("ignore")
 ################################## Page Layouts ###########################################################
 st.set_page_config(
@@ -497,7 +498,7 @@ elif chosen_id == "tab8":
 elif chosen_id == "tab9":
     l_image, r_image = st.columns(2)
     radio_button = sidebar.radio(
-                "", ['K_means_Method','Region_Growing_method','third_Method','Fourth_method'], horizontal=False)
+                "", ['K_means_Method','Region_Growing_method','Agglomerative','Mean shift'], horizontal=False)
     flag = True
     if radio_button == 'K_means_Method':
          method = "km"
@@ -506,19 +507,21 @@ elif chosen_id == "tab9":
     elif radio_button == 'Region_Growing_Method':
          method ="rg"
 
-    elif radio_button =='third_Method':
-         method = ".."
+    elif radio_button =='Agglomerative':
+         method = "ag"
     else:
-         method =".."
+         method ="ms"
 
     k_value = sidebar.slider('K Value', 0, step=1, max_value=10, value=4, disabled= flag )    
     if my_upload  is not None:
-        path_1='images/'+ my_upload.name
-        image_1 = cv2.imread(path_1)
+        image = Image.open(my_upload)
+        image_1  = np.array(image)
+        # path_1='images/'+ my_upload.name
+        # image_1 = cv2.imread(path_1)
         with l_image:
                     st.markdown('<p style="text-align: center;">Input Image</p>',unsafe_allow_html=True)
                     
-                    image_1 = cv2.cvtColor(image_1,cv2.COLOR_BGR2RGB)  
+                    # image_1 = cv2.cvtColor(image_1,cv2.COLOR_BGR2RGB)  
                     st.image(image_1,width=450)       
 
       
@@ -526,16 +529,17 @@ elif chosen_id == "tab9":
 
                 st.markdown('<p style="text-align: center;">Output Image</p>',unsafe_allow_html=True)
                 if method == "km":
+                    # image_1 = cv2.resize(image_1, (128, 128))
                     pixel_values = image_1.reshape((-1, 3))
                     pixel_values = np.float32(pixel_values)
                     k = km.KMeans(K= k_value, max_iters=100)  
                     labels = k.predict(pixel_values)
                     centers = k.cent()
                     segmented_image = centers[labels.flatten()]
-                    segmented_image = segmented_image.reshape(image_1.shape)
+                    segmented_image_rg = segmented_image.reshape(image_1.shape)
                     
-                    st.image(segmented_image,width=450)
-                else:
+                    # st.image(segmented_image,width=450)
+                elif method == "rg":
                     # Apply region growing algorithm
                     mask = rg.region_growing(image_1,(100,100))
                     print("heree")
@@ -543,10 +547,16 @@ elif chosen_id == "tab9":
                     print("hereee")
                     segmented_image_rg = cv2.cvtColor(image_1,cv2.COLOR_BGR2RGB)
                     print("hereeee")
-                    
-                  
+                elif method == "ag":
+                    resized_image = cv2.resize(image_1, (128, 128))
+                    segmented_image_rg = Segmentation.apply_agglomerative_clustering(resized_image,15,30)
+                    # cv2.imwrite('Segmentation.jpg', segmentation_img)
+                        
+                else:
+                    resized_image = cv2.resize(image_1, (200, 200))
+                    segmented_image_rg = Segmentation.mean_shift(resized_image)
 
-                    st.image(segmented_image_rg,width=450)
+                st.image(segmented_image_rg,width=450)
    
 #############################################################################################################
 else:
